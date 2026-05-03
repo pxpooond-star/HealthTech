@@ -23,27 +23,21 @@
     .check-container { display: flex; align-items: center; background: #f5f5f5; padding: 10px; border-radius: 8px; font-weight: 600; color: #888; transition: all 0.3s; }
     #claimBtn { display: none; width: 100%; background: #ff9800; color: white; border: none; padding: 15px; font-size: 20px; font-weight: bold; border-radius: 30px; margin-top: 20px; margin-bottom: 40px; cursor: pointer; }
     
-    /* สไตล์ Modal และ Animation เด้งขึ้นมา */
     .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); overflow-y: auto; }
     .modal-content { background-color: white; margin: 10% auto; padding: 25px; border-radius: 20px; width: 85%; max-width: 450px; text-align: left; transform: translateY(50px); opacity: 0; transition: all 0.4s ease-out; }
-    .modal.show .modal-content { transform: translateY(0); opacity: 1; }
+    .modal.show .modal-content { transform: translateY(0); opacity: 1; } 
     
     .modal h3 { color: #4CAF50; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 24px;}
     .section-title { font-weight: bold; color: #2196F3; margin: 15px 0 10px 0; display: block; border-left: 4px solid #2196F3; padding-left: 10px; font-size: 18px;}
     .question { margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 10px;}
     .question p { font-weight: 600; margin-bottom: 10px; font-size: 16px; color: #333;}
     .question label { display: block; margin-bottom: 8px; background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 16px; }
-    .question input[type="text"], .question input[type="number"], .question input[type="date"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-family: 'Sarabun';}
-    .result-box { text-align: center; padding: 20px; border-radius: 15px; margin-top: 10px; }
+    .question input[type="text"], .question input[type="number"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-family: 'Sarabun';}
     
     .submit-survey-btn { width: 100%; background: #9e9e9e; color: white; border: none; padding: 18px; font-size: 22px; border-radius: 30px; cursor: not-allowed; font-weight: bold; margin-top: 20px; transition: background 0.3s;}
     .submit-survey-btn.active { background: #2196F3; cursor: pointer; box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);}
     
-    .start-big-btn { width: 100%; background: #4CAF50; color: white; border: none; padding: 20px; font-size: 24px; border-radius: 30px; cursor: pointer; font-weight: bold; margin-top: 20px; box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);}
-    
     #loadingMessage { padding: 50px; color: #888; font-size: 18px; }
-
-    /* ซ่อน checkbox แบบเดิม แล้วสร้าง custom checkbox สวยๆ */
     .checkbox-grid label { display: flex; align-items: center; }
     .checkbox-grid input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; }
   </style>
@@ -57,7 +51,6 @@
       <img id="pictureUrl" src="" alt="Profile">
       <h2 id="displayName"></h2>
       <p style="margin: 5px 0 0 0; font-size: 14px;">แต้มสะสมปัจจุบัน: <span id="currentPoints" style="font-size: 22px; font-weight: bold; color: #ffeb3b;">0</span> แต้ม</p>
-      <p id="developmentMsg" style="margin: 5px 0 0 0; font-size: 13px; color: #e8f5e9; display: none;">💪 มาร่วมสะสมคะแนนกันเถอะ!</p>
     </div>
 
     <div class="content" id="environmentSection">
@@ -106,8 +99,8 @@
         <div class="question">
           <p>4. ประวัติการหกล้มภายใน 6 เดือนที่ผ่านมา</p>
           <label><input type="radio" name="p_fell" value="ไม่มี"> ไม่มี</label>
-          <label><input type="radio" name="p_fell" value="หกล้ม 1 ครั้ง"> หกล้ม 1 ครั้ง</label>
-          <label><input type="radio" name="p_fell" value="หกล้มมากกว่าหรือเท่ากับ 2 ครั้ง"> หกล้มมากกว่าหรือเท่ากับ 2 ครั้ง</label>
+          <label><input type="radio" name="p_fell" value="หกล้ม 1 ครั้ง"> หกล้ม 1 ครั้งภายใน 6 เดือน</label>
+          <label><input type="radio" name="p_fell" value="หกล้มมากกว่าหรือเท่ากับ 2 ครั้ง"> หกล้มมากกว่าหรือเท่ากับ 2 ครั้งภายใน 6 เดือน</label>
         </div>
 
         <span class="section-title">🔹 ส่วนที่ 3: สุขภาพร่างกาย</span>
@@ -127,15 +120,15 @@
         </div>
         <div class="question">
           <p>7. ใช้อุปกรณ์ช่วยเดินหรือไม่</p>
-          <label><input type="radio" name="p_device" value="ไม่ใช่"> ไม่ใช้</label>
+          <label><input type="radio" name="p_device" value="ไม่ใช่"> ไม่ใช่</label>
           <label><input type="radio" name="p_device" value="ไม้เท้า"> ไม้เท้า</label>
           <label><input type="radio" name="p_device" value="ไม้เท้า 4 ขา"> ไม้เท้า 4 ขา</label>
           <label><input type="radio" name="p_device" value="อื่นๆ"> อื่นๆ</label>
         </div>
         <div class="question">
           <p>8. การออกกำลังกาย</p>
-          <label><input type="radio" name="p_exercise" value="สม่ำเสมอ"> สม่ำเสมอ (≥ 3 ครั้ง/สัปดาห์)</label>
-          <label><input type="radio" name="p_exercise" value="น้อยกว่า 3 ครั้ง/สัปดาห์"> น้อยกว่า 3 ครั้ง/สัปดาห์</label>
+          <label><input type="radio" name="p_exercise" value="สม่ำเสมอ"> ออกกำลังกายสม่ำเสมอหรือมากกว่าหรือเท่ากับ 3 ครั้ง/สัปดาห์</label>
+          <label><input type="radio" name="p_exercise" value="น้อยกว่า 3 ครั้ง/สัปดาห์"> ออกกำลังกายน้อยกว่า 3 ครั้ง/สัปดาห์</label>
           <label><input type="radio" name="p_exercise" value="ไม่ออกกำลังกาย"> ไม่ออกกำลังกาย</label>
         </div>
         <div class="question">
@@ -164,7 +157,7 @@
 
   <script>
     const liffId = "2009776694-kh8em6DX";
-    // 🔴 วาง URL จาก Code.gs ที่ได้จากการ Deploy 🔴
+    // 🔴 วาง URL ของ Apps Script 🔴
     const apiUrl = "https://script.google.com/macros/s/AKfycbzuu6Dwz15Wj01CFephqkiR6a2OLfU3gLNVdx1zWAjjp1PdfY9xTxqSGiFNcM3fe-iGcg/exec"; 
     
     let userProfile = null;
@@ -187,7 +180,7 @@
           .then(data => { 
             document.getElementById("loadingMessage").style.display = "none";
             document.getElementById("mainApp").style.display = "block";
-            if(data.points !== undefined) updateScoreUI(data.points); 
+            if(data.points !== undefined) document.getElementById("currentPoints").innerText = data.points;
 
             if(data.showPreSurvey === true) {
               setTimeout(() => {
@@ -256,15 +249,13 @@
       let q8 = f.p_exercise.value !== "";
       let q9 = f.p_worry.value !== "";
 
-      // เช็ค checkbox ว่าเลือกอย่างน้อย 1 อันหรือยัง
       let q10 = false;
-      let envCheckboxes = document.querySelectorAll('input[name="p_env"]');
-      envCheckboxes.forEach(cb => { if(cb.checked) q10 = true; });
+      document.querySelectorAll('input[name="p_env"]').forEach(cb => { if(cb.checked) q10 = true; });
 
       if(houseId && q1 && q2 && q3 && q4 && q5 && q6 && q7 && q8 && q9 && q10) {
         btn.disabled = false;
         btn.classList.add("active");
-        btn.innerText = "บันทึกและเริ่มออกกำลังกาย";
+        btn.innerText = "บันทึกและเริ่มใช้งานแอป";
       } else {
         btn.disabled = true;
         btn.classList.remove("active");
@@ -279,7 +270,6 @@
       btn.classList.remove("active");
       
       let score = 0;
-      // คำนวณคะแนนตามเกณฑ์
       if(f.p_disease.value === "มี") score += 1;
       
       if(f.p_fell.value === "หกล้ม 1 ครั้ง") score += 2;
@@ -302,11 +292,9 @@
       if(f.p_worry.value === "กังวลเล็กน้อย") score += 1;
       else if(f.p_worry.value === "กังวลมาก") score += 2;
 
-      // นับจุดเสี่ยงสิ่งแวดล้อม
       let envScore = 0;
       let selectedEnvs = [];
-      let envCheckboxes = document.querySelectorAll('input[name="p_env"]:checked');
-      envCheckboxes.forEach(cb => { 
+      document.querySelectorAll('input[name="p_env"]:checked').forEach(cb => { 
         selectedEnvs.push(cb.value);
         if(cb.value !== "ไม่มี") envScore++;
       });
@@ -337,6 +325,7 @@
           riskLevel: riskLevel
         })
       }).then(() => {
+        // ซ่อนหน้าต่างประเมิน แล้วแสดงส่วนสภาพแวดล้อมให้เริ่มใช้งานได้เลย
         let preModal = document.getElementById('preSurveyModal');
         preModal.classList.remove("show"); 
         setTimeout(() => { 
@@ -385,14 +374,10 @@
       btn.disabled = true;
       fetch(apiUrl, { method: 'POST', body: JSON.stringify({ action: "addPoints", uid: userProfile.userId }) })
       .then(res => res.json()).then(data => {
-        updateScoreUI(data.newPoints);
+        document.getElementById("currentPoints").innerText = data.newPoints;
         alert("🎉 ยินดีด้วย! คุณได้รับ 10 คะแนนเรียบร้อยแล้ว");
         btn.innerText = "✅ รับคะแนนแล้ว";
       });
-    }
-
-    function updateScoreUI(points) {
-      document.getElementById("currentPoints").innerText = points;
     }
 
     window.onload = main;

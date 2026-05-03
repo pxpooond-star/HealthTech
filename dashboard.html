@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - รายงานผลการออกกำลังกาย</title>
+  <title>Dashboard - สรุปผลแบบประเมินผู้สูงอายุ</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -16,141 +16,155 @@
     .header h1 { margin: 0; font-size: 32px; font-weight: 600; letter-spacing: 1px;}
     .header p { margin: 10px 0 0 0; font-size: 16px; font-weight: 300; opacity: 0.9; }
 
-    .container { max-width: 1000px; margin: auto; padding: 0 20px 50px 20px; }
+    .container { max-width: 1100px; margin: auto; padding: 0 20px 50px 20px; }
     
     .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
-    .card h3 { color: #2E7D32; font-size: 20px; margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 12px; margin-bottom: 20px; }
+    .card h3 { color: #2E7D32; font-size: 18px; margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 12px; margin-bottom: 20px; }
     
     .stat-box { display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px 0;}
     .stat-number { font-size: 70px; font-weight: bold; color: #4CAF50; line-height: 1; }
     .stat-label { font-size: 18px; color: #666; margin-top: 5px; }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; }
     .chart-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; align-items: center;}
     
     #loading { text-align: center; padding: 50px; font-size: 22px; color: #666; }
     #dashboardContent { display: none; }
 
     @media (max-width: 768px) {
-      .grid-2 { grid-template-columns: 1fr; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
   <div class="header" data-aos="fade-down">
-    <h1>📊 Dashboard รายงานผล</h1>
-    <p>โปรแกรมการออกกำลังกายเพื่อป้องกันการหกล้มในผู้สูงอายุ</p>
+    <h1>📊 Dashboard ข้อมูลผู้สูงอายุ</h1>
+    <p>วิเคราะห์ผลจากแบบประเมินความเสี่ยงและข้อมูลการออกกำลังกาย</p>
   </div>
 
   <div id="loading">⏳ กำลังประมวลผลข้อมูล โปรดรอสักครู่...</div>
 
   <div class="container" id="dashboardContent">
     
-    <div class="card" data-aos="fade-up">
-      <h3>👥 จำนวนผู้เข้าใช้งานระบบ</h3>
-      <div class="stat-box">
-        <div class="stat-number" id="txtTotalUsers">0</div>
-        <div class="stat-label">คน</div>
-      </div>
-    </div>
-
     <div class="grid-2">
+      <div class="card" data-aos="fade-up">
+        <h3>👥 จำนวนผู้ทำแบบประเมิน</h3>
+        <div class="stat-box">
+          <div class="stat-number" id="txtTotalUsers">0</div>
+          <div class="stat-label">คน</div>
+        </div>
+      </div>
       <div class="card" data-aos="fade-up" data-aos-delay="100">
-        <h3>⚧️ สัดส่วนเพศ</h3>
-        <div class="chart-container"><canvas id="genderChart"></canvas></div>
-      </div>
-
-      <div class="card" data-aos="fade-up" data-aos-delay="200">
-        <h3>🎂 จำนวนผู้ใช้งานแยกตามช่วงอายุ</h3>
-        <div class="chart-container"><canvas id="ageChart"></canvas></div>
+        <h3>📊 ระดับคะแนนความเสี่ยง (0-17 คะแนน)</h3>
+        <div class="chart-container"><canvas id="riskChart"></canvas></div>
       </div>
     </div>
 
-    <div class="card" data-aos="fade-up">
-      <h3>⭐ สรุปคะแนนการออกกำลังกายสะสม</h3>
-      <div class="chart-container" style="height: 300px;"><canvas id="scoreChart"></canvas></div>
+    <!-- ข้อมูลทั่วไป -->
+    <h2 style="color: #4CAF50; border-left: 5px solid #4CAF50; padding-left: 10px;" data-aos="fade-right">1. ข้อมูลทั่วไป</h2>
+    <div class="grid-3">
+      <div class="card" data-aos="fade-up"><canvas id="q1Chart"></canvas></div>
+      <div class="card" data-aos="fade-up" data-aos-delay="100"><canvas id="q2Chart"></canvas></div>
+      <div class="card" data-aos="fade-up" data-aos-delay="200"><canvas id="q3Chart"></canvas></div>
+    </div>
+
+    <!-- ประวัติหกล้มและสุขภาพ -->
+    <h2 style="color: #4CAF50; border-left: 5px solid #4CAF50; padding-left: 10px;" data-aos="fade-right">2. สุขภาพและการหกล้ม</h2>
+    <div class="grid-3">
+      <div class="card" data-aos="fade-up"><canvas id="q4Chart"></canvas></div>
+      <div class="card" data-aos="fade-up" data-aos-delay="100"><canvas id="q5Chart"></canvas></div>
+      <div class="card" data-aos="fade-up" data-aos-delay="200"><canvas id="q6Chart"></canvas></div>
+    </div>
+
+    <!-- การใช้ชีวิตประจำวัน -->
+    <h2 style="color: #4CAF50; border-left: 5px solid #4CAF50; padding-left: 10px;" data-aos="fade-right">3. พฤติกรรมและสภาพแวดล้อม</h2>
+    <div class="grid-3">
+      <div class="card" data-aos="fade-up"><canvas id="q7Chart"></canvas></div>
+      <div class="card" data-aos="fade-up" data-aos-delay="100"><canvas id="q8Chart"></canvas></div>
+      <div class="card" data-aos="fade-up" data-aos-delay="200"><canvas id="q9Chart"></canvas></div>
     </div>
 
     <div class="card" data-aos="fade-up">
-      <h3>📋 สรุปผลความเสี่ยงจากการทำแบบประเมิน (ก่อนเข้าโปรแกรม)</h3>
-      <div class="chart-container" style="height: 300px;"><canvas id="preRiskChart"></canvas></div>
+      <canvas id="q10Chart"></canvas>
+    </div>
+
+    <div class="card" data-aos="fade-up">
+      <h3>📈 การกระจายตัวของคะแนนความเสี่ยงผู้ใช้งาน</h3>
+      <div class="chart-container" style="height: 300px;"><canvas id="scoreDistChart"></canvas></div>
+    </div>
+
+    <div class="card" data-aos="fade-up">
+      <h3>⭐ สรุปคะแนนการออกกำลังกายสะสมในแอป</h3>
+      <div class="chart-container" style="height: 300px;"><canvas id="appScoreChart"></canvas></div>
     </div>
 
   </div>
 
   <script>
-    // 🔴 วาง URL จาก Code.gs ที่ได้จากการ Deploy 🔴
+    // 🔴 วาง URL ของ Apps Script ตรงนี้ 🔴
     const apiUrl = "https://script.google.com/macros/s/AKfycbzuu6Dwz15Wj01CFephqkiR6a2OLfU3gLNVdx1zWAjjp1PdfY9xTxqSGiFNcM3fe-iGcg/exec";
 
     AOS.init({ duration: 800, once: true });
 
-    const colors = {
+    const c = {
       blue: 'rgba(54, 162, 235, 0.8)',
       pink: 'rgba(255, 99, 132, 0.8)',
       green: 'rgba(76, 175, 80, 0.8)',
       yellow: 'rgba(255, 206, 86, 0.8)',
       orange: 'rgba(255, 152, 0, 0.8)',
       red: 'rgba(244, 67, 54, 0.8)',
-      gray: 'rgba(201, 203, 207, 0.8)'
+      gray: 'rgba(201, 203, 207, 0.8)',
+      purple: 'rgba(153, 102, 255, 0.8)'
     };
 
     window.onload = function() {
-      fetch(apiUrl, {
-        method: 'POST',
-        body: JSON.stringify({ action: "getDashboardData" })
-      })
+      fetch(apiUrl, { method: 'POST', body: JSON.stringify({ action: "getDashboardData" }) })
       .then(res => res.json())
       .then(data => {
         if(data.status === "success") {
           document.getElementById('loading').style.display = "none";
           document.getElementById('dashboardContent').style.display = "block";
           renderDashboard(data.data);
-        } else {
-          alert("เกิดข้อผิดพลาดในการดึงข้อมูล");
         }
-      })
-      .catch(err => alert("การเชื่อมต่อมีปัญหา"));
+      });
     };
+
+    function createChart(id, type, title, labels, data, colors, isHorizontal = false) {
+       let options = { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: title, font: {size: 16, family: 'Kanit'} } } };
+       if(type === 'bar') {
+           options.plugins.legend = { display: false };
+           if(isHorizontal) options.indexAxis = 'y';
+       } else {
+           options.plugins.legend = { position: 'bottom' };
+       }
+       new Chart(document.getElementById(id), { type: type, data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderRadius: type==='bar'?5:0 }] }, options: options });
+    }
 
     function renderDashboard(db) {
       document.getElementById('txtTotalUsers').innerText = db.totalUsers;
 
-      new Chart(document.getElementById('genderChart'), {
-        type: 'pie',
-        data: {
-          labels: ['ชาย', 'หญิง'],
-          datasets: [{ data: [db.gender.male, db.gender.female], backgroundColor: [colors.blue, colors.pink], borderWidth: 0 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-      });
+      createChart('riskChart', 'doughnut', 'ระดับความเสี่ยงการหกล้ม', ['เสี่ยงต่ำ (0-5)', 'เสี่ยงปานกลาง (6-10)', 'เสี่ยงสูง (11-17)'], [db.riskLevel.low, db.riskLevel.med, db.riskLevel.high], [c.green, c.orange, c.red]);
+      createChart('appScoreChart', 'bar', 'แต้มสะสมการออกกำลังกาย (1 ครั้ง = 10 แต้ม)', ['0-4 แต้ม', '5-104 แต้ม', '105+ แต้ม'], [db.appScores.low, db.appScores.med, db.appScores.high], [c.gray, c.blue, c.green]);
 
-      new Chart(document.getElementById('ageChart'), {
-        type: 'bar',
-        data: {
-          labels: ['< 60 ปี', '60-69 ปี', '70-79 ปี', '80 ปีขึ้นไป'],
-          datasets: [{ label: 'จำนวนผู้ใช้งาน (คน)', data: [db.ageGroups.under60, db.ageGroups.g60, db.ageGroups.g70, db.ageGroups.over80], backgroundColor: colors.yellow, borderRadius: 5 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-      });
+      createChart('q1Chart', 'pie', 'Q1: เพศของผู้ใช้งาน', ['ชาย', 'หญิง'], [db.gender.male, db.gender.female], [c.blue, c.pink]);
+      createChart('q2Chart', 'bar', 'Q2: ช่วงอายุ (ปี)', ['< 60', '60-69', '70-79', '80+'], [db.ageGroups.under60, db.ageGroups.g60, db.ageGroups.g70, db.ageGroups.over80], c.yellow);
+      createChart('q3Chart', 'pie', 'Q3: โรคประจำตัว', ['ไม่มี', 'มี'], [db.disease.no, db.disease.yes], [c.green, c.orange]);
 
-      new Chart(document.getElementById('scoreChart'), {
-        type: 'bar',
-        data: {
-          labels: ['0-4 แต้ม', '5-104 แต้ม', '105+ แต้ม'],
-          datasets: [{ label: 'จำนวนผู้ใช้งาน (คน)', data: [db.scores.low, db.scores.med, db.scores.high], backgroundColor: [colors.gray, colors.blue, colors.green], borderRadius: 5 }]
-        },
-        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-      });
+      createChart('q4Chart', 'bar', 'Q4: ประวัติหกล้ม (6 เดือน)', ['ไม่มี', '1 ครั้ง', '>= 2 ครั้ง'], [db.fell.none, db.fell.once, db.fell.multiple], [c.green, c.orange, c.red]);
+      createChart('q5Chart', 'pie', 'Q5: อาการเดินโคลงเครง', ['ไม่เลย', 'เล็กน้อย', 'ปานกลาง', 'มาก'], [db.balance.none, db.balance.slight, db.balance.med, db.balance.high], [c.green, c.yellow, c.orange, c.red]);
+      createChart('q6Chart', 'bar', 'Q6: ปวดหลัง/เข่า', ['ไม่ปวด', 'เล็กน้อย', 'ปานกลาง', 'มาก'], [db.pain.none, db.pain.slight, db.pain.med, db.pain.high], [c.green, c.yellow, c.orange, c.red]);
 
-      new Chart(document.getElementById('preRiskChart'), {
-        type: 'bar',
-        data: {
-          labels: ['เสี่ยงต่ำ (0-5 คะแนน)', 'เสี่ยงปานกลาง (6-10 คะแนน)', 'เสี่ยงสูง (11-17 คะแนน)'],
-          datasets: [{ label: 'จำนวนผู้ใช้งาน (คน)', data: [db.preRisk.low, db.preRisk.med, db.preRisk.high], backgroundColor: [colors.green, colors.orange, colors.red], borderRadius: 5 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-      });
+      createChart('q7Chart', 'pie', 'Q7: อุปกรณ์ช่วยเดิน', ['ไม่ใช้', 'ไม้เท้า', 'ไม้เท้า 4 ขา', 'อื่นๆ'], [db.device.none, db.device.cane, db.device.walker, db.device.other], [c.green, c.blue, c.orange, c.gray]);
+      createChart('q8Chart', 'bar', 'Q8: การออกกำลังกาย', ['สม่ำเสมอ', '< 3 ครั้ง/สัปดาห์', 'ไม่ออกกำลังกาย'], [db.exercise.regular, db.exercise.less, db.exercise.none], [c.green, c.orange, c.red]);
+      createChart('q9Chart', 'pie', 'Q9: ความกังวลกิจวัตร', ['ไม่กังวล', 'กังวลเล็กน้อย', 'กังวลมาก'], [db.worry.none, db.worry.slight, db.worry.high], [c.green, c.orange, c.red]);
+      
+      createChart('q10Chart', 'bar', 'Q10: สิ่งแวดล้อมเสี่ยงในบ้าน', ['ไม่มี', 'พื้นลื่น', 'สิ่งกีดขวาง', 'ไม่มีราวจับ', 'แสงสว่างไม่พอ'], [db.env.none, db.env.slip, db.env.block, db.env.noRail, db.env.dark], c.blue, true);
+
+      let scoreCounts = Array(18).fill(0);
+      db.scoreList.forEach(s => { if(s >= 0 && s <= 17) scoreCounts[s]++; });
+      createChart('scoreDistChart', 'bar', 'ความถี่ของคะแนน (จำนวนคนต่อคะแนน)', ['0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17'], scoreCounts, c.purple);
     }
   </script>
 </body>
