@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบช่วยเหลือการออกกำลังกายในผู้สูงอายุ</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; text-align: center; background-color: #f0f8ff; margin: 0; padding: 0; }
+    .header { background: #4CAF50; color: white; padding: 20px; border-radius: 0 0 20px 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .header img { border-radius: 50%; width: 80px; border: 3px solid white; margin-bottom: 10px; }
+    .header h2 { margin: 0; font-size: 22px; }
+    .content { padding: 20px; max-width: 500px; margin: auto; display: none; } 
+    .info-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .info-card img { width: 100%; border-radius: 10px; }
+    
+    #startExerciseBtn { width: 100%; background: #2196F3; color: white; border: none; padding: 15px; font-size: 20px; font-weight: bold; border-radius: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); margin-bottom: 30px; cursor: pointer; }
+    .video-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: left; }
+    .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px; margin-bottom: 10px; background: #000; }
+    .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    
+    .check-container { display: flex; align-items: center; background: #f5f5f5; padding: 10px; border-radius: 8px; font-weight: 600; color: #888; transition: all 0.3s; }
+    #claimBtn { display: none; width: 100%; background: #ff9800; color: white; border: none; padding: 15px; font-size: 20px; font-weight: bold; border-radius: 30px; margin-top: 20px; margin-bottom: 40px; cursor: pointer; }
+    
+    /* สไตล์ Modal และ Animation เด้งขึ้นมา */
+    .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); overflow-y: auto; }
+    .modal-content { background-color: white; margin: 10% auto; padding: 25px; border-radius: 20px; width: 85%; max-width: 450px; text-align: left; transform: translateY(50px); opacity: 0; transition: all 0.4s ease-out; }
+    .modal.show .modal-content { transform: translateY(0); opacity: 1; }
+    
+    .modal h3 { color: #4CAF50; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 24px;}
+    .section-title { font-weight: bold; color: #2196F3; margin: 15px 0 10px 0; display: block; border-left: 4px solid #2196F3; padding-left: 10px; font-size: 18px;}
+    .question { margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 10px;}
+    .question p { font-weight: 600; margin-bottom: 10px; font-size: 16px; color: #333;}
+    .question label { display: block; margin-bottom: 8px; background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 16px; }
+    .question input[type="text"], .question input[type="number"], .question input[type="date"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-family: 'Sarabun';}
+    .result-box { text-align: center; padding: 20px; border-radius: 15px; margin-top: 10px; }
+    
+    .submit-survey-btn { width: 100%; background: #9e9e9e; color: white; border: none; padding: 18px; font-size: 22px; border-radius: 30px; cursor: not-allowed; font-weight: bold; margin-top: 20px; transition: background 0.3s;}
+    .submit-survey-btn.active { background: #2196F3; cursor: pointer; box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);}
+    
+    .start-big-btn { width: 100%; background: #4CAF50; color: white; border: none; padding: 20px; font-size: 24px; border-radius: 30px; cursor: pointer; font-weight: bold; margin-top: 20px; box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);}
+    
+    #loadingMessage { padding: 50px; color: #888; font-size: 18px; }
+
+    /* ซ่อน checkbox แบบเดิม แล้วสร้าง custom checkbox สวยๆ */
+    .checkbox-grid label { display: flex; align-items: center; }
+    .checkbox-grid input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; }
+  </style>
+</head>
+<body>
+
+  <div id="loadingMessage">กำลังโหลดข้อมูล... ⏳</div>
+
+  <div id="mainApp" style="display:none;">
+    <div class="header">
+      <img id="pictureUrl" src="" alt="Profile">
+      <h2 id="displayName"></h2>
+      <p style="margin: 5px 0 0 0; font-size: 14px;">แต้มสะสมปัจจุบัน: <span id="currentPoints" style="font-size: 22px; font-weight: bold; color: #ffeb3b;">0</span> แต้ม</p>
+      <p id="developmentMsg" style="margin: 5px 0 0 0; font-size: 13px; color: #e8f5e9; display: none;">💪 มาร่วมสะสมคะแนนกันเถอะ!</p>
+    </div>
+
+    <div class="content" id="environmentSection">
+      <div class="info-card">
+        <h3 style="text-align: center; margin-top: 0; color: #4CAF50;">📍 แนะนำก่อนออกกำลังกาย</h3>
+        <p style="font-size: 14px; color: #666; text-align: center;">จัดสิ่งแวดล้อมภายในบ้าน เพื่อการป้องกันการหกล้ม</p>
+        <img src="image-1.png" alt="Infographic">
+      </div>
+      <button id="startExerciseBtn" onclick="startExercise()">🏃‍♂️ เริ่มออกกำลังกาย</button>
+      
+      <div id="dynamicVideoContainer" style="display:none;"></div>
+      <button id="claimBtn" onclick="sendPointsToGoogleSheets()">🎁 กดรับ 10 คะแนน</button>
+    </div>
+  </div>
+
+  <div id="preSurveyModal" class="modal">
+    <div class="modal-content">
+      <h3>แบบประเมินความเสี่ยง</h3>
+      <p style="font-size: 14px; text-align: center; color: #d32f2f; font-weight: bold;">📌 กรุณาตอบให้ครบทุกข้อ</p>
+      
+      <form id="preSurveyForm" onchange="checkPreSurveyCompletion()">
+        
+        <div class="question">
+          <p>รหัสบ้าน / ผู้กรอกแบบประเมิน:</p>
+          <input type="text" id="p_houseId_input" name="p_houseId" placeholder="ระบุรหัสบ้านหรือบ้านเลขที่" required onkeyup="checkPreSurveyCompletion()">
+        </div>
+
+        <span class="section-title">🔹 ส่วนที่ 1: ข้อมูลทั่วไป</span>
+        <div class="question">
+          <p>1. เพศ</p>
+          <label><input type="radio" name="p_gender" value="ชาย" required> ชาย</label>
+          <label><input type="radio" name="p_gender" value="หญิง"> หญิง</label>
+        </div>
+        <div class="question">
+          <p>2. อายุ (ปี)</p>
+          <input type="number" id="p_age_input" name="p_age" placeholder="ระบุอายุ" required onkeyup="checkPreSurveyCompletion()">
+        </div>
+        <div class="question">
+          <p>3. ท่านมีโรคประจำตัวหรือไม่</p>
+          <label><input type="radio" name="p_disease" value="ไม่มี" onchange="toggleDisease(false)"> ไม่มี</label>
+          <label><input type="radio" name="p_disease" value="มี" onchange="toggleDisease(true)"> มี</label>
+          <input type="text" id="p_disease_detail" name="p_disease_detail" style="display:none; margin-top:5px;" placeholder="ระบุโรคประจำตัว" onkeyup="checkPreSurveyCompletion()">
+        </div>
+
+        <span class="section-title">🔹 ส่วนที่ 2: ประวัติการหกล้ม</span>
+        <div class="question">
+          <p>4. ประวัติการหกล้มภายใน 6 เดือนที่ผ่านมา</p>
+          <label><input type="radio" name="p_fell" value="ไม่มี"> ไม่มี</label>
+          <label><input type="radio" name="p_fell" value="หกล้ม 1 ครั้ง"> หกล้ม 1 ครั้ง</label>
+          <label><input type="radio" name="p_fell" value="หกล้มมากกว่าหรือเท่ากับ 2 ครั้ง"> หกล้มมากกว่าหรือเท่ากับ 2 ครั้ง</label>
+        </div>
+
+        <span class="section-title">🔹 ส่วนที่ 3: สุขภาพร่างกาย</span>
+        <div class="question">
+          <p>5. คุณรู้สึกเดินไม่มั่นคงหรือโคลงเครงหรือไม่</p>
+          <label><input type="radio" name="p_balance" value="ไม่เลย"> ไม่เลย</label>
+          <label><input type="radio" name="p_balance" value="เล็กน้อย"> เล็กน้อย</label>
+          <label><input type="radio" name="p_balance" value="ปานกลาง"> ปานกลาง</label>
+          <label><input type="radio" name="p_balance" value="มาก"> มาก</label>
+        </div>
+        <div class="question">
+          <p>6. คุณมีอาการปวดหลังและเข่าหรือไม่</p>
+          <label><input type="radio" name="p_pain" value="ไม่ปวด"> ไม่ปวด 😊</label>
+          <label><input type="radio" name="p_pain" value="ปวดเล็กน้อย"> ปวดเล็กน้อย 😐</label>
+          <label><input type="radio" name="p_pain" value="ปวดปานกลาง"> ปวดปานกลาง 😟</label>
+          <label><input type="radio" name="p_pain" value="ปวดมาก"> ปวดมาก 😫</label>
+        </div>
+        <div class="question">
+          <p>7. ใช้อุปกรณ์ช่วยเดินหรือไม่</p>
+          <label><input type="radio" name="p_device" value="ไม่ใช่"> ไม่ใช้</label>
+          <label><input type="radio" name="p_device" value="ไม้เท้า"> ไม้เท้า</label>
+          <label><input type="radio" name="p_device" value="ไม้เท้า 4 ขา"> ไม้เท้า 4 ขา</label>
+          <label><input type="radio" name="p_device" value="อื่นๆ"> อื่นๆ</label>
+        </div>
+        <div class="question">
+          <p>8. การออกกำลังกาย</p>
+          <label><input type="radio" name="p_exercise" value="สม่ำเสมอ"> สม่ำเสมอ (≥ 3 ครั้ง/สัปดาห์)</label>
+          <label><input type="radio" name="p_exercise" value="น้อยกว่า 3 ครั้ง/สัปดาห์"> น้อยกว่า 3 ครั้ง/สัปดาห์</label>
+          <label><input type="radio" name="p_exercise" value="ไม่ออกกำลังกาย"> ไม่ออกกำลังกาย</label>
+        </div>
+        <div class="question">
+          <p>9. ความกังวลในการทำกิจวัตรประจำวัน (เช่น ลุกนั่ง เดิน เข้าห้องน้ำ)</p>
+          <label><input type="radio" name="p_worry" value="ไม่กังวล"> ไม่กังวล</label>
+          <label><input type="radio" name="p_worry" value="กังวลเล็กน้อย"> กังวลเล็กน้อย</label>
+          <label><input type="radio" name="p_worry" value="กังวลมาก"> กังวลมาก</label>
+        </div>
+
+        <span class="section-title">🔹 ส่วนที่ 4: การใช้ชีวิตประจำวัน</span>
+        <div class="question">
+          <p>10. ในบ้านของคุณมีสิ่งเสี่ยงต่อการหกล้มหรือไม่ (เลือกได้มากกว่า 1 ข้อ)</p>
+          <div class="checkbox-grid">
+            <label><input type="checkbox" name="p_env" value="ไม่มี" onchange="handleNoEnvRisk(this)"> ไม่มี</label>
+            <label><input type="checkbox" name="p_env" value="พื้นลื่น" class="env-risk"> พื้นลื่น</label>
+            <label><input type="checkbox" name="p_env" value="มีสิ่งกีดขวางระหว่างการเดิน" class="env-risk"> มีสิ่งกีดขวางระหว่างการเดิน</label>
+            <label><input type="checkbox" name="p_env" value="ห้องน้ำไม่มีราวจับ" class="env-risk"> ห้องน้ำไม่มีราวจับ</label>
+            <label><input type="checkbox" name="p_env" value="แสงสว่างไม่เพียงพอ" class="env-risk"> แสงสว่างไม่เพียงพอ</label>
+          </div>
+        </div>
+
+        <button type="button" id="submitPreBtn" class="submit-survey-btn" disabled onclick="submitPreSurvey()">กรุณาตอบให้ครบทุกข้อ</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const liffId = "2009776694-kh8em6DX";
+    // 🔴 วาง URL จาก Code.gs ที่ได้จากการ Deploy 🔴
+    const apiUrl = "https://script.google.com/macros/s/AKfycbzuu6Dwz15Wj01CFephqkiR6a2OLfU3gLNVdx1zWAjjp1PdfY9xTxqSGiFNcM3fe-iGcg/exec"; 
+    
+    let userProfile = null;
+    let players = [];
+    let videoDataList = [];
+
+    async function main() {
+      try {
+        await liff.init({ liffId: liffId });
+        if (liff.isLoggedIn()) {
+          userProfile = await liff.getProfile();
+          document.getElementById("pictureUrl").src = userProfile.pictureUrl;
+          document.getElementById("displayName").innerText = "คุณ " + userProfile.displayName;
+          
+          fetch(apiUrl, {
+            method: 'POST',
+            body: JSON.stringify({ action: "login", uid: userProfile.userId, displayName: userProfile.displayName, profilePic: userProfile.pictureUrl })
+          })
+          .then(res => res.json())
+          .then(data => { 
+            document.getElementById("loadingMessage").style.display = "none";
+            document.getElementById("mainApp").style.display = "block";
+            if(data.points !== undefined) updateScoreUI(data.points); 
+
+            if(data.showPreSurvey === true) {
+              setTimeout(() => {
+                let preModal = document.getElementById('preSurveyModal');
+                preModal.style.display = "block";
+                setTimeout(() => { preModal.classList.add("show"); }, 50); 
+              }, 1500); 
+            } else {
+              document.getElementById('environmentSection').style.display = "block";
+            }
+
+            if(data.videos && data.videos.length > 0) {
+              videoDataList = data.videos;
+              let html = "";
+              for(let i=0; i<videoDataList.length; i++) {
+                html += `
+                  <div class="video-card" id="videoCard${i+1}" style="display: none;">
+                    <h4 style="margin: 0 0 10px 0;">ท่าที่ ${i+1}: ${videoDataList[i].name}</h4>
+                    <div class="video-wrapper"><div id="player${i+1}"></div></div>
+                    <label class="check-container" id="label${i+1}">
+                      <input type="checkbox" id="check${i+1}" class="task-check" disabled> 
+                      <span id="text${i+1}">🔒 กรุณาดูวิดีโอให้จบ</span>
+                    </label>
+                  </div>`;
+              }
+              document.getElementById("dynamicVideoContainer").innerHTML = html;
+              let tag = document.createElement('script');
+              tag.src = "https://www.youtube.com/iframe_api";
+              let firstScriptTag = document.getElementsByTagName('script')[0];
+              firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            }
+          });
+        } else { liff.login(); }
+      } catch (err) { console.error(err); }
+    }
+
+    function toggleDisease(show) { 
+      document.getElementById('p_disease_detail').style.display = show ? "block" : "none"; 
+      checkPreSurveyCompletion();
+    }
+
+    function handleNoEnvRisk(checkbox) {
+      let riskCheckboxes = document.querySelectorAll('.env-risk');
+      if(checkbox.checked) {
+        riskCheckboxes.forEach(cb => { cb.checked = false; cb.disabled = true; });
+      } else {
+        riskCheckboxes.forEach(cb => { cb.disabled = false; });
+      }
+      checkPreSurveyCompletion();
+    }
+
+    function checkPreSurveyCompletion() {
+      let f = document.getElementById('preSurveyForm');
+      let btn = document.getElementById('submitPreBtn');
+      
+      let houseId = document.getElementById('p_houseId_input').value !== "";
+      let q1 = f.p_gender.value !== "";
+      let q2 = document.getElementById('p_age_input').value !== "";
+      let q3 = f.p_disease.value !== "";
+      if(f.p_disease.value === "มี" && document.getElementById('p_disease_detail').value.trim() === "") q3 = false;
+      
+      let q4 = f.p_fell.value !== "";
+      let q5 = f.p_balance.value !== "";
+      let q6 = f.p_pain.value !== "";
+      let q7 = f.p_device.value !== "";
+      let q8 = f.p_exercise.value !== "";
+      let q9 = f.p_worry.value !== "";
+
+      // เช็ค checkbox ว่าเลือกอย่างน้อย 1 อันหรือยัง
+      let q10 = false;
+      let envCheckboxes = document.querySelectorAll('input[name="p_env"]');
+      envCheckboxes.forEach(cb => { if(cb.checked) q10 = true; });
+
+      if(houseId && q1 && q2 && q3 && q4 && q5 && q6 && q7 && q8 && q9 && q10) {
+        btn.disabled = false;
+        btn.classList.add("active");
+        btn.innerText = "บันทึกและเริ่มออกกำลังกาย";
+      } else {
+        btn.disabled = true;
+        btn.classList.remove("active");
+        btn.innerText = "กรุณาตอบให้ครบทุกข้อ";
+      }
+    }
+
+    function submitPreSurvey() {
+      let f = document.getElementById('preSurveyForm');
+      let btn = document.getElementById('submitPreBtn');
+      btn.innerText = "⏳ กำลังบันทึกข้อมูล...";
+      btn.classList.remove("active");
+      
+      let score = 0;
+      // คำนวณคะแนนตามเกณฑ์
+      if(f.p_disease.value === "มี") score += 1;
+      
+      if(f.p_fell.value === "หกล้ม 1 ครั้ง") score += 2;
+      else if(f.p_fell.value === "หกล้มมากกว่าหรือเท่ากับ 2 ครั้ง") score += 4;
+      
+      if(f.p_balance.value === "เล็กน้อย") score += 1;
+      else if(f.p_balance.value === "ปานกลาง") score += 3;
+      else if(f.p_balance.value === "มาก") score += 4;
+
+      if(f.p_pain.value === "ปวดเล็กน้อย") score += 1;
+      else if(f.p_pain.value === "ปวดปานกลาง") score += 2;
+      else if(f.p_pain.value === "ปวดมาก") score += 3;
+
+      if(f.p_device.value === "ไม้เท้า") score += 1;
+      else if(f.p_device.value === "ไม้เท้า 4 ขา" || f.p_device.value === "อื่นๆ") score += 2;
+
+      if(f.p_exercise.value === "น้อยกว่า 3 ครั้ง/สัปดาห์") score += 1;
+      else if(f.p_exercise.value === "ไม่ออกกำลังกาย") score += 2;
+
+      if(f.p_worry.value === "กังวลเล็กน้อย") score += 1;
+      else if(f.p_worry.value === "กังวลมาก") score += 2;
+
+      // นับจุดเสี่ยงสิ่งแวดล้อม
+      let envScore = 0;
+      let selectedEnvs = [];
+      let envCheckboxes = document.querySelectorAll('input[name="p_env"]:checked');
+      envCheckboxes.forEach(cb => { 
+        selectedEnvs.push(cb.value);
+        if(cb.value !== "ไม่มี") envScore++;
+      });
+      if(envScore >= 2) score += 2;
+      else if(envScore === 1) score += 1;
+
+      let riskLevel = "เสี่ยงต่ำ";
+      if(score >= 11) riskLevel = "เสี่ยงสูง";
+      else if(score >= 6) riskLevel = "เสี่ยงปานกลาง";
+
+      fetch(apiUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: "submitPreSurvey",
+          uid: userProfile.userId,
+          houseId: document.getElementById('p_houseId_input').value,
+          gender: f.p_gender.value,
+          age: f.p_age.value,
+          disease: f.p_disease.value === "มี" ? f.p_disease_detail.value : "ไม่มี",
+          fell: f.p_fell.value,
+          balance: f.p_balance.value,
+          pain: f.p_pain.value,
+          device: f.p_device.value,
+          exercise: f.p_exercise.value,
+          worry: f.p_worry.value,
+          env: selectedEnvs.join(", "),
+          score: score,
+          riskLevel: riskLevel
+        })
+      }).then(() => {
+        let preModal = document.getElementById('preSurveyModal');
+        preModal.classList.remove("show"); 
+        setTimeout(() => { 
+          preModal.style.display = "none"; 
+          document.getElementById('environmentSection').style.display = "block";
+        }, 300); 
+      });
+    }
+
+    function startExercise() {
+      document.getElementById("startExerciseBtn").style.display = "none";
+      document.getElementById("dynamicVideoContainer").style.display = "block";
+      document.getElementById("videoCard1").style.display = "block";
+      document.getElementById("videoCard1").scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function onYouTubeIframeAPIReady() {
+      for(let i = 0; i < videoDataList.length; i++) {
+        players[i] = new YT.Player('player' + (i+1), {
+          videoId: videoDataList[i].vid,
+          playerVars: { 'playsinline': 1 },
+          events: { 'onStateChange': function(event) { onPlayerStateChange(event, i+1); } }
+        });
+      }
+    }
+
+    function onPlayerStateChange(event, playerNum) {
+      if (event.data === YT.PlayerState.ENDED) {
+        document.getElementById('check' + playerNum).checked = true;
+        document.getElementById('label' + playerNum).style.background = "#e8f5e9";
+        document.getElementById('text' + playerNum).innerText = "✅ เสร็จสิ้นท่าที่ " + playerNum;
+        let next = playerNum + 1;
+        if (document.getElementById('videoCard' + next)) {
+          document.getElementById('videoCard' + next).style.display = "block";
+          document.getElementById('videoCard' + next).scrollIntoView({ behavior: 'smooth' });
+        }
+        if (document.querySelectorAll('.task-check:checked').length === videoDataList.length) {
+          document.getElementById('claimBtn').style.display = 'block';
+        }
+      }
+    }
+
+    function sendPointsToGoogleSheets() {
+      let btn = document.getElementById('claimBtn');
+      btn.innerText = "⏳ กำลังบันทึกคะแนน...";
+      btn.disabled = true;
+      fetch(apiUrl, { method: 'POST', body: JSON.stringify({ action: "addPoints", uid: userProfile.userId }) })
+      .then(res => res.json()).then(data => {
+        updateScoreUI(data.newPoints);
+        alert("🎉 ยินดีด้วย! คุณได้รับ 10 คะแนนเรียบร้อยแล้ว");
+        btn.innerText = "✅ รับคะแนนแล้ว";
+      });
+    }
+
+    function updateScoreUI(points) {
+      document.getElementById("currentPoints").innerText = points;
+    }
+
+    window.onload = main;
+  </script>
+</body>
+</html>
