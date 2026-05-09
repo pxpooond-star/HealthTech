@@ -62,7 +62,6 @@
       </div>
     </div>
 
-    <!-- ข้อมูลทั่วไป -->
     <h2 style="color: #4CAF50; border-left: 5px solid #4CAF50; padding-left: 10px;" data-aos="fade-right">1. ข้อมูลทั่วไป</h2>
     <div class="grid-3">
       <div class="card" data-aos="fade-up"><canvas id="q1Chart"></canvas></div>
@@ -70,7 +69,6 @@
       <div class="card" data-aos="fade-up" data-aos-delay="200"><canvas id="q3Chart"></canvas></div>
     </div>
 
-    <!-- ประวัติหกล้มและสุขภาพ -->
     <h2 style="color: #4CAF50; border-left: 5px solid #4CAF50; padding-left: 10px;" data-aos="fade-right">2. สุขภาพและการหกล้ม</h2>
     <div class="grid-3">
       <div class="card" data-aos="fade-up"><canvas id="q4Chart"></canvas></div>
@@ -78,7 +76,6 @@
       <div class="card" data-aos="fade-up" data-aos-delay="200"><canvas id="q6Chart"></canvas></div>
     </div>
 
-    <!-- การใช้ชีวิตประจำวัน -->
     <h2 style="color: #4CAF50; border-left: 5px solid #4CAF50; padding-left: 10px;" data-aos="fade-right">3. พฤติกรรมและสภาพแวดล้อม</h2>
     <div class="grid-3">
       <div class="card" data-aos="fade-up"><canvas id="q7Chart"></canvas></div>
@@ -135,7 +132,13 @@
        let options = { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: title, font: {size: 16, family: 'Kanit'} } } };
        if(type === 'bar') {
            options.plugins.legend = { display: false };
-           if(isHorizontal) options.indexAxis = 'y';
+           // 💡 ตรงนี้แหละครับที่บังคับให้โชว์แต่เลขจำนวนเต็ม
+           if(isHorizontal) {
+               options.indexAxis = 'y';
+               options.scales = { x: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } };
+           } else {
+               options.scales = { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } };
+           }
        } else {
            options.plugins.legend = { position: 'bottom' };
        }
@@ -146,10 +149,10 @@
       document.getElementById('txtTotalUsers').innerText = db.totalUsers;
 
       createChart('riskChart', 'doughnut', 'ระดับความเสี่ยงการหกล้ม', ['เสี่ยงต่ำ (0-5)', 'เสี่ยงปานกลาง (6-10)', 'เสี่ยงสูง (11-17)'], [db.riskLevel.low, db.riskLevel.med, db.riskLevel.high], [c.green, c.orange, c.red]);
-      createChart('appScoreChart', 'bar', 'แต้มสะสมการออกกำลังกาย (1 ครั้ง = 10 แต้ม)', ['0-4 แต้ม', '5-104 แต้ม', '105+ แต้ม'], [db.appScores.low, db.appScores.med, db.appScores.high], [c.gray, c.blue, c.green]);
+      createChart('appScoreChart', 'bar', 'แต้มสะสมการออกกำลังกาย (1 ครั้ง = 10 แต้ม)', ['0-50 แต้ม', '51-100 แต้ม', '101+ แต้ม'], [db.appScores.low, db.appScores.med, db.appScores.high], [c.gray, c.blue, c.green]);
 
       createChart('q1Chart', 'pie', 'Q1: เพศของผู้ใช้งาน', ['ชาย', 'หญิง'], [db.gender.male, db.gender.female], [c.blue, c.pink]);
-      createChart('q2Chart', 'bar', 'Q2: ช่วงอายุ (ปี)', ['< 60', '60-69', '70-79', '80+'], [db.ageGroups.under60, db.ageGroups.g60, db.ageGroups.g70, db.ageGroups.over80], c.yellow);
+      createChart('q2Chart', 'bar', 'Q2: ช่วงอายุ', ['< 60', '60-69', '70-79', '80+'], [db.ageGroups.under60, db.ageGroups.g60, db.ageGroups.g70, db.ageGroups.over80], c.yellow);
       createChart('q3Chart', 'pie', 'Q3: โรคประจำตัว', ['ไม่มี', 'มี'], [db.disease.no, db.disease.yes], [c.green, c.orange]);
 
       createChart('q4Chart', 'bar', 'Q4: ประวัติหกล้ม (6 เดือน)', ['ไม่มี', '1 ครั้ง', '>= 2 ครั้ง'], [db.fell.none, db.fell.once, db.fell.multiple], [c.green, c.orange, c.red]);

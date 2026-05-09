@@ -38,7 +38,7 @@
     .submit-survey-btn.active { background: #2196F3; cursor: pointer; box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);}
     
     #loadingMessage { padding: 50px; color: #888; font-size: 18px; }
-    .checkbox-grid label { display: flex; align-items: center; }
+    .checkbox-grid label { display: flex; align-items: center; margin-bottom: 8px; background: #fff; border: 1px solid #ddd; padding: 10px; border-radius: 8px; cursor: pointer;}
     .checkbox-grid input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; }
   </style>
 </head>
@@ -74,8 +74,8 @@
       <form id="preSurveyForm" onchange="checkPreSurveyCompletion()">
         
         <div class="question">
-          <p>รหัสบ้าน / ผู้กรอกแบบประเมิน:</p>
-          <input type="text" id="p_houseId_input" name="p_houseId" placeholder="ระบุรหัสบ้านหรือบ้านเลขที่" required onkeyup="checkPreSurveyCompletion()">
+          <p>บ้านเลขที่ / รหัสผู้กรอกแบบประเมิน:</p>
+          <input type="text" id="p_houseId_input" name="p_houseId" placeholder="ระบุบ้านเลขที่" required onkeyup="checkPreSurveyCompletion()">
         </div>
 
         <span class="section-title">🔹 ส่วนที่ 1: ข้อมูลทั่วไป</span>
@@ -85,14 +85,29 @@
           <label><input type="radio" name="p_gender" value="หญิง"> หญิง</label>
         </div>
         <div class="question">
-          <p>2. อายุ (ปี)</p>
-          <input type="number" id="p_age_input" name="p_age" placeholder="ระบุอายุ" required onkeyup="checkPreSurveyCompletion()">
+          <p>2. ช่วงอายุ</p>
+          <label><input type="radio" name="p_age" value="< 60 ปี"> ต่ำกว่า 60 ปี</label>
+          <label><input type="radio" name="p_age" value="60-69 ปี"> 60-69 ปี</label>
+          <label><input type="radio" name="p_age" value="70-79 ปี"> 70-79 ปี</label>
+          <label><input type="radio" name="p_age" value="80 ปีขึ้นไป"> 80 ปีขึ้นไป</label>
         </div>
         <div class="question">
           <p>3. ท่านมีโรคประจำตัวหรือไม่</p>
           <label><input type="radio" name="p_disease" value="ไม่มี" onchange="toggleDisease(false)"> ไม่มี</label>
-          <label><input type="radio" name="p_disease" value="มี" onchange="toggleDisease(true)"> มี</label>
-          <input type="text" id="p_disease_detail" name="p_disease_detail" style="display:none; margin-top:5px;" placeholder="ระบุโรคประจำตัว" onkeyup="checkPreSurveyCompletion()">
+          <label><input type="radio" name="p_disease" value="มี" onchange="toggleDisease(true)"> มี (ระบุ)</label>
+          
+          <div id="disease_detail" style="display:none; padding-top: 10px; border-top: 1px dashed #ccc; margin-top: 10px;">
+            <p style="font-size: 14px; margin-bottom: 5px; color: #555;">เลือกโรคประจำตัว (เลือกได้มากกว่า 1 ข้อ)</p>
+            <div class="checkbox-grid">
+              <label><input type="checkbox" name="p_disease_list" value="ความดันโลหิตสูง" class="disease-cb"> ความดันโลหิตสูง</label>
+              <label><input type="checkbox" name="p_disease_list" value="เบาหวาน" class="disease-cb"> เบาหวาน</label>
+              <label><input type="checkbox" name="p_disease_list" value="โรคหัวใจ" class="disease-cb"> โรคหัวใจ</label>
+              <label><input type="checkbox" name="p_disease_list" value="ไขมันในเลือดสูง" class="disease-cb"> ไขมันในเลือดสูง</label>
+              <label><input type="checkbox" name="p_disease_list" value="โรคข้อเข่าเสื่อม" class="disease-cb"> โรคข้อเข่าเสื่อม</label>
+              <label><input type="checkbox" name="p_disease_list" value="อื่นๆ" id="disease_other_cb" class="disease-cb" onchange="toggleDiseaseOther()"> อื่นๆ</label>
+            </div>
+            <input type="text" id="p_disease_other_text" placeholder="ระบุโรคอื่นๆ" style="display:none; margin-top:10px;" onkeyup="checkPreSurveyCompletion()">
+          </div>
         </div>
 
         <span class="section-title">🔹 ส่วนที่ 2: ประวัติการหกล้ม</span>
@@ -218,7 +233,13 @@
     }
 
     function toggleDisease(show) { 
-      document.getElementById('p_disease_detail').style.display = show ? "block" : "none"; 
+      document.getElementById('disease_detail').style.display = show ? "block" : "none"; 
+      checkPreSurveyCompletion();
+    }
+    
+    function toggleDiseaseOther() {
+      let isChecked = document.getElementById('disease_other_cb').checked;
+      document.getElementById('p_disease_other_text').style.display = isChecked ? "block" : "none";
       checkPreSurveyCompletion();
     }
 
@@ -238,9 +259,15 @@
       
       let houseId = document.getElementById('p_houseId_input').value !== "";
       let q1 = f.p_gender.value !== "";
-      let q2 = document.getElementById('p_age_input').value !== "";
+      let q2 = f.p_age.value !== "";
+      
       let q3 = f.p_disease.value !== "";
-      if(f.p_disease.value === "มี" && document.getElementById('p_disease_detail').value.trim() === "") q3 = false;
+      if(f.p_disease.value === "มี") {
+         let diseaseSelected = false;
+         document.querySelectorAll('input[name="p_disease_list"]').forEach(cb => { if(cb.checked) diseaseSelected = true; });
+         if(!diseaseSelected) q3 = false;
+         if(document.getElementById('disease_other_cb').checked && document.getElementById('p_disease_other_text').value.trim() === "") q3 = false;
+      }
       
       let q4 = f.p_fell.value !== "";
       let q5 = f.p_balance.value !== "";
@@ -270,7 +297,21 @@
       btn.classList.remove("active");
       
       let score = 0;
-      if(f.p_disease.value === "มี") score += 1;
+      
+      let finalDiseaseStr = "ไม่มี";
+      if(f.p_disease.value === "มี") {
+         score += 1;
+         let dList = [];
+         document.querySelectorAll('input[name="p_disease_list"]:checked').forEach(cb => {
+            if(cb.value === "อื่นๆ") {
+               let otherText = document.getElementById('p_disease_other_text').value.trim();
+               if(otherText) dList.push("อื่นๆ: " + otherText);
+            } else {
+               dList.push(cb.value);
+            }
+         });
+         finalDiseaseStr = dList.join(", ");
+      }
       
       if(f.p_fell.value === "หกล้ม 1 ครั้ง") score += 2;
       else if(f.p_fell.value === "หกล้มมากกว่าหรือเท่ากับ 2 ครั้ง") score += 4;
@@ -313,7 +354,7 @@
           houseId: document.getElementById('p_houseId_input').value,
           gender: f.p_gender.value,
           age: f.p_age.value,
-          disease: f.p_disease.value === "มี" ? f.p_disease_detail.value : "ไม่มี",
+          disease: finalDiseaseStr,
           fell: f.p_fell.value,
           balance: f.p_balance.value,
           pain: f.p_pain.value,
@@ -325,7 +366,7 @@
           riskLevel: riskLevel
         })
       }).then(() => {
-        // ซ่อนหน้าต่างประเมิน แล้วแสดงส่วนสภาพแวดล้อมให้เริ่มใช้งานได้เลย
+        // ซ่อนหน้าต่างและเริ่มใช้งานทันที (ไม่มีหน้าโชว์ผลแล้ว)
         let preModal = document.getElementById('preSurveyModal');
         preModal.classList.remove("show"); 
         setTimeout(() => { 
